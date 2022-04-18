@@ -4,19 +4,28 @@
 # @Author  : jjc
 # @File    : main.py
 # @Software: PyCharm
+# file: statusbar.py
+# !/usr/bin/python
+
+"""
+ZetCode PyQt6 tutorial
+
+This program creates a statusbar.
+
+Author: Jan Bodnar
+Website: zetcode.com
+"""
+
 import sys
-from PyQt6 import QtWidgets
+from PyQt6.QtWidgets import QApplication
+from main_window import CodeManagerTool
 
 
 def main():
-    app = QtWidgets.QApplication(sys.argv)
-
-    w = QtWidgets.QWidget()
-    w.resize(250, 200)
-    w.move(300, 300)
-    w.setWindowTitle('ProgramManager')
-    w.show()
-    sys.exit(app.exit())
+    app = QApplication(sys.argv)
+    ct = CodeManagerTool()
+    ct.run()
+    sys.exit(app.exec())
 
 
 if __name__ == '__main__':

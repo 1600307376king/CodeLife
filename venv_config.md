@@ -9,7 +9,10 @@
     # 输入y
     # 重新进入虚拟环境即可
 
-##### 1.2 程序启动报错
+## 2、安装命令
+    # pip3 install PyQt6
+
+##### 2.2 程序启动报错
     Traceback (most recent call last):
     from PyQt6.QtWidgets import QApplication
     ImportError: DLL load failed: 找不到指定的程序。
