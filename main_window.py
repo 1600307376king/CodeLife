@@ -7,21 +7,19 @@
 import sys
 from PyQt6.QtWidgets import QApplication
 from PyQt6.QtWidgets import QMainWindow
+from PyQt6.QtWidgets import QAbstractButton
+from PyQt6.QtWidgets import QPushButton, QButtonGroup, QStyleOption, QMdiSubWindow, \
+    QMenu, QWidgetAction, QPlainTextEdit
+from PyQt6.QtGui import QAction
+from main_menu import MainMenu
+# from base_window import BaseWindow
 from config import window_height
 from config import window_width
 from config import window_title
 from config import window_init_position
 
 
-class CodeManagerTool(QMainWindow):
-
-    def __init__(self):
-        super().__init__()
-        self.window_width = window_width
-        self.window_height = window_height
-        self.window_title = window_title
-        self.init_position = window_init_position
-
+class CodeManagerTool(MainMenu):
 
     def run(self):
         """
@@ -31,7 +29,4 @@ class CodeManagerTool(QMainWindow):
 
         self.resize(self.window_width, self.window_height)
         self.move(*self.init_position)
-        self.setWindowTitle(window_title)
         self.show()
-
-
