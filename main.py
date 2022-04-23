@@ -24,7 +24,7 @@ from main_window import CodeManagerTool
 def main():
     app = QApplication(sys.argv)
     ct = CodeManagerTool()
-    ct.run()
+    ct.show()
     sys.exit(app.exec())
 
 

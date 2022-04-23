@@ -5,7 +5,6 @@
 # @File    : main_menu.py
 # @Software: PyCharm
 from base_window import BaseWindow
-from PyQt6.QtGui import QAction
 
 
 class MainMenu(BaseWindow):
@@ -15,6 +14,6 @@ class MainMenu(BaseWindow):
         # self.menu.addMenu("22")
 
         # self.mdi_sub_window.show()
-        menu_bar = self.menuBar()
-        file_menu = menu_bar.addMenu("文件")
-        file_menu.addAction(QAction("新建", self))
+        # menu_bar = self.menuBar()
+        # file_menu = menu_bar.addMenu("文件")
+        # file_menu.addAction(QAction("新建", self))
