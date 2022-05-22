@@ -17,7 +17,7 @@ Website: zetcode.com
 """
 
 import sys
-from PyQt5.QtWidgets import QApplication, QMainWindow, QWidget
+from PyQt5.QtWidgets import QApplication, QMainWindow
 from dialogGroups.addNoteDialog import AddNoteDialog
 from mainWin import MainWin
 
@@ -29,14 +29,14 @@ class MyWindow(MainWin, QMainWindow):
 
         self.setup_ui()
         self.set_dialog_bind()
-        self.add_sub_title.clicked.connect(self.add_dialog.show)
+        self.add_sub_chapter.clicked.connect(self.add_dialog.show)
         self.set_add_dialog_signal_bind()
 
     def set_dialog_bind(self):
         self.add_dialog.setup_ui()
 
     def set_add_dialog_signal_bind(self):
-        self.add_dialog.send.signal.connect(self.add_title_btn)
+        self.add_dialog.send.signal.connect(self.add_chapter_btn)
 
 
 def main():
