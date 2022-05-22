@@ -9,4 +9,3 @@
 window_width = 1600
 window_height = 960
 window_title = "Program Manager"
-
