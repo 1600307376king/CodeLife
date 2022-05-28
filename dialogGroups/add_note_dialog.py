@@ -1,13 +1,6 @@
-#!/usr/bin/env python
-# -*- coding: utf-8 -*-
-# @Time    : 2022/5/21 17:13
-# @Author  : jjc
-# @File    : addNoteDialog.py
-# @Software: PyCharm
-
 # -*- coding: utf-8 -*-
 
-# Form implementation generated from reading ui file 'main_win.ui'
+# Form implementation generated from reading ui file 'add_note_dialog.py'
 #
 # Created by: PyQt5 UI code generator 5.15.4
 #
@@ -16,8 +9,7 @@
 
 from PyQt5.QtWidgets import QMainWindow, QMessageBox
 from PyQt5 import QtCore, QtGui, QtWidgets
-from PyQt5.QtCore import pyqtSignal
-from signalManager import SignalManager
+from signal_manager import SignalManager
 
 
 class AddNoteDialog(QMainWindow):
@@ -139,4 +131,3 @@ class AddNoteDialog(QMainWindow):
 
     def fresh_text_edit(self):
         self.preview_note.setMarkdown(self.note_text_edit.toPlainText())
-

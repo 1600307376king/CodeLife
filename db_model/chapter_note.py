@@ -2,9 +2,10 @@
 # -*- coding: utf-8 -*-
 # @Time    : 2022/5/22 18:43
 # @Author  : jjc
-# @File    : chapterNote.py
+# @File    : chapter_note.py
 # @Software: PyCharm
-from baseDb import BaseDbManager
+import os
+from base_db import BaseDbManager
 
 
 class ChapterNote(BaseDbManager):
@@ -20,3 +21,8 @@ class ChapterNote(BaseDbManager):
             )
         ''')
         self.conn.commit()
+
+
+if __name__ == '__main__':
+    cn = ChapterNote()
+    cn.create_chapter_note()

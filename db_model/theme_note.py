@@ -2,9 +2,9 @@
 # -*- coding: utf-8 -*-
 # @Time    : 2022/5/22 18:35
 # @Author  : jjc
-# @File    : themeNote.py
+# @File    : theme_note.py
 # @Software: PyCharm
-from baseDb import BaseDbManager
+from base_db import BaseDbManager
 
 
 class ThemeNote(BaseDbManager):
@@ -13,9 +13,9 @@ class ThemeNote(BaseDbManager):
         try:
             cur = self.conn.cursor()
             cur.execute('''
-                CREATE TABLE IF NOT EXISTS 'THEME'(
-                ID INTEGER PRIMARY KEY,
-                THEME_NAME CHAR(20) NOT NULL,
+                CREATE TABLE IF NOT EXISTS THEME
+                (ID INTEGER PRIMARY KEY,
+                THEME_NAME CHAR(20) NOT NULL
                 )
             ''')
             self.conn.commit()
@@ -26,3 +26,8 @@ class ThemeNote(BaseDbManager):
         cur = self.conn.cursor()
         cur.execute("INSERT INFO THEME (ID, THEME_NAME) VALUES (NULL, '%s')" % name)
         self.conn.commit()
+
+
+if __name__ == '__main__':
+    tn = ThemeNote()
+    tn.create_theme_table()

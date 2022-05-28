@@ -2,14 +2,17 @@
 # -*- coding: utf-8 -*-
 # @Time    : 2022/5/22 17:26
 # @Author  : jjc
-# @File    : baseDb.py
+# @File    : base_db.py
 # @Software: PyCharm
+import os
 import sqlite3
 
 
 class BaseDbManager:
     def __init__(self):
-        self.conn = sqlite3.connect("./src/db_file/study.db")
+        self.db_name = "study.db"
+        self.db_path = os.path.join(os.getcwd(), "../src/db_file/%s" % self.db_name)
+        self.conn = sqlite3.connect(self.db_path)
 
     def close_conn(self):
         self.conn.close()
