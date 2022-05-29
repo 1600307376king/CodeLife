@@ -2,7 +2,7 @@
 <project version="4">
   <component name="DBNavigator.Project.DataEditorManager">
     <record-view-column-sorting-type value="BY_INDEX" />
-    <value-preview-text-wrapping value="true" />
+    <value-preview-text-wrapping value="false" />
     <value-preview-pinned value="false" />
   </component>
   <component name="DBNavigator.Project.DataExportManager">
@@ -33,13 +33,20 @@
     </connection>
   </component>
   <component name="DBNavigator.Project.DatabaseFileManager">
-    <open-files />
+    <open-files>
+      <object connection-id="39e525d8-d0ba-4fed-a2ba-83bcf55bb1f7" object-ref="schemas/main/tables/CHAPTER" />
+    </open-files>
   </component>
   <component name="DBNavigator.Project.DatabaseSessionManager">
     <connection id="39e525d8-d0ba-4fed-a2ba-83bcf55bb1f7" />
   </component>
   <component name="DBNavigator.Project.DatasetFilterManager">
-    <filter-actions connection-id="39e525d8-d0ba-4fed-a2ba-83bcf55bb1f7" dataset="main.CHAPTER" active-filter-id="" />
+    <filter-actions connection-id="39e525d8-d0ba-4fed-a2ba-83bcf55bb1f7" dataset="main.THEME" active-filter-id="37247f99-f521-4bb3-9937-668e462dc0bc">
+      <filter id="37247f99-f521-4bb3-9937-668e462dc0bc" name="1" temporary="false" custom-name="false" type="basic" join-type="AND">
+        <condition column="ID" operator="=" value="1" active="true" />
+      </filter>
+    </filter-actions>
+    <filter-actions connection-id="39e525d8-d0ba-4fed-a2ba-83bcf55bb1f7" dataset="main.CHAPTER" active-filter-id="EMPTY_FILTER" />
   </component>
   <component name="DBNavigator.Project.EditorStateManager">
     <last-used-providers />

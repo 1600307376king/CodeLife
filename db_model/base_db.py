@@ -11,8 +11,14 @@ import sqlite3
 class BaseDbManager:
     def __init__(self):
         self.db_name = "study.db"
-        self.db_path = os.path.join(os.getcwd(), "../src/db_file/%s" % self.db_name)
+        self.db_path = os.path.join(os.getcwd(), "src/db_file/%s" % self.db_name)
         self.conn = sqlite3.connect(self.db_path)
 
     def close_conn(self):
         self.conn.close()
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        self.close_conn()

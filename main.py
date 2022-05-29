@@ -40,7 +40,7 @@ class MyWindow(MainWin, QMainWindow):
         self.add_theme_dialog.setup_ui()
 
     def set_add_dialog_signal_bind(self):
-        self.add_dialog.send.signal.connect(self.add_chapter_btn)
+        self.add_dialog.send.signal.connect(self.add_chapter_data)
         self.add_theme_dialog.send.signal_str.connect(self.add_theme)
 
 

@@ -5,7 +5,7 @@
 # @File    : chapter_note.py
 # @Software: PyCharm
 import os
-from base_db import BaseDbManager
+from db_model.base_db import BaseDbManager
 
 
 class ChapterNote(BaseDbManager):
@@ -20,6 +20,18 @@ class ChapterNote(BaseDbManager):
             CONTENT TEXT NOT NULL
             )
         ''')
+        self.conn.commit()
+
+    def select_note(self, theme_name):
+        sql = "select CHAPTER, CONTENT from CHAPTER where THEME_NAME = %s" % theme_name
+        cur = self.conn.cursor()
+        return cur.execute(sql).fetchall()
+
+    def insert_note(self, theme_name, chapter, content):
+        sql = "INSERT INTO CHAPTER (ID, THEME_NAME, CHAPTER, CONTENT)" \
+              " VALUES (NULL, '%s', '%s', '%s')" % (theme_name, chapter, content)
+        cur = self.conn.cursor()
+        cur.execute(sql)
         self.conn.commit()
 
 

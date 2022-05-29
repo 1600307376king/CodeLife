@@ -57,6 +57,8 @@ from config import THEME_CONTAINER_LABEL_SIZE
 from config import SUB_CHAPTER_SCROLL_WIDTH
 from config import THEME_BTN_BASE_X
 from config import THEME_BTN_WIDTH_SPACE
+from db_model.theme_note import ThemeNote
+from db_model.chapter_note import ChapterNote
 
 
 class MainWin(QMainWindow, QDialog):
@@ -112,9 +114,23 @@ class MainWin(QMainWindow, QDialog):
         self.theme_arr = []
         self.theme_set = set()
 
-    def add_chapter_btn(self, chapter_info):
+        self.be_select_theme = None
+
+    def add_chapter_data(self, chapter_info):
         """
-        添加文章
+        新增chapter数据，初始化UI
+        :param chapter_info:
+        :return:
+        """
+        if self.be_select_theme is None:
+            self.be_select_theme = self.theme_arr[0].text()
+        with ChapterNote() as cn:
+            cn.insert_note(self.be_select_theme, *chapter_info)
+        self._add_chapter_btn(chapter_info)
+
+    def _add_chapter_btn(self, chapter_info):
+        """
+        添加文章UI
         :param chapter_info:
         :return:
         """
@@ -143,6 +159,7 @@ class MainWin(QMainWindow, QDialog):
             # 将之前的textBrowser隐藏，只显示新增的
             if self.chapter_arr:
                 self.chapter_arr[-1].browser_content.hide()
+            push_button.clicked.connect(lambda: self._switch_chapter_content(push_button.text()))
             one_chapter = OneChapter(push_button, browser)
             self.chapter_arr.append(one_chapter)
             self._set_sub_chapter_scroll()
@@ -154,23 +171,68 @@ class MainWin(QMainWindow, QDialog):
         :return:
         """
         if theme_name:
-            btn_pos_x = THEME_BTN_BASE_X
-            if self.theme_arr:
-                btn_pos_x = self.theme_arr[-1].x() + THEME_BTN_WIDTH_SPACE
-            new_theme_btn = QPushButton(self.theme_frame)
-            new_theme_btn.setGeometry(QRect(btn_pos_x, THEME_BASE_Y,
-                                            THEME_BASE_X + THEME_WIDTH,
-                                            THEME_BASE_Y + THEME_HEIGHT))
-            self.theme_font.setFamily("楷体")
-            self.theme_font.setPointSize(THEME_FONT_SIZE)
-            new_theme_btn.setText(theme_name)
-            new_theme_btn.setFont(self.theme_font)
-            new_theme_btn.setStyleSheet("border-radius:5px;\nborder:1px solid")
-            new_theme_btn.setObjectName(theme_name)
-            new_theme_btn.show()
-            self.add_theme_btn.move(btn_pos_x + THEME_BTN_WIDTH_SPACE, THEME_BASE_Y)
+            new_theme_btn = self._create_theme_btn(theme_name)
             self.theme_arr.append(new_theme_btn)
             self.theme_set.add(theme_name)
+            with ThemeNote() as tn:
+                tn.insert_theme(theme_name)
+            self.be_select_theme = theme_name
+
+    def _switch_theme_content(self, theme_name):
+        """
+        切换主题
+        :param theme_name:
+        :return:
+        """
+        self.be_select_theme = theme_name
+        for ch in self.chapter_arr:
+            ch.chapter_btn.deleteLater()
+            ch.browser_content.deleteLater()
+        self.chapter_arr.clear()
+        self.chapter_set.clear()
+        for theme in self.theme_arr:
+            if theme.text() == theme_name:
+                theme.setStyleSheet("border-radius:5px;\nborder:1px solid;background-color: rgb(255, 229, 192);")
+            else:
+                theme.setStyleSheet("border-radius:5px;\nborder:1px solid")
+        with ChapterNote() as cn:
+            query_data = cn.select_note(theme_name)
+        for row in query_data:
+            self._add_chapter_btn(row)
+
+    def _switch_chapter_content(self, chapter_name):
+        for chapter in self.chapter_arr:
+            if chapter.chapter_btn.text() == chapter_name:
+                chapter.chapter_btn.setStyleSheet(
+                    "border:10px;\nborder:1px solid rgb(0, 0, 0);\n;background-color: rgb(255, 229, 192);")
+                chapter.browser_content.show()
+            else:
+                chapter.chapter_btn.setStyleSheet("border:10px;\nborder:1px solid rgb(0, 0, 0);\n")
+                chapter.browser_content.hide()
+
+    def _create_theme_btn(self, theme_name):
+        """
+        创建主题按钮
+        :param theme_name:
+        :return:
+        """
+        btn_pos_x = THEME_BTN_BASE_X
+        if self.theme_arr:
+            btn_pos_x = self.theme_arr[-1].x() + THEME_BTN_WIDTH_SPACE
+        new_theme_btn = QPushButton(self.theme_frame)
+        new_theme_btn.setGeometry(QRect(btn_pos_x, THEME_BASE_Y,
+                                        THEME_BASE_X + THEME_WIDTH,
+                                        THEME_BASE_Y + THEME_HEIGHT))
+        self.theme_font.setFamily("楷体")
+        self.theme_font.setPointSize(THEME_FONT_SIZE)
+        new_theme_btn.setText(theme_name)
+        new_theme_btn.setFont(self.theme_font)
+        new_theme_btn.setStyleSheet("border-radius:5px;\nborder:1px solid")
+        new_theme_btn.setObjectName(theme_name)
+        new_theme_btn.clicked.connect(lambda: self._switch_theme_content(new_theme_btn.text()))
+        new_theme_btn.show()
+        self.add_theme_btn.move(btn_pos_x + THEME_BTN_WIDTH_SPACE, THEME_BASE_Y)
+        return new_theme_btn
 
     def _set_chapter_btn(self, btn_text_name):
         """
@@ -234,7 +296,18 @@ class MainWin(QMainWindow, QDialog):
         主题选择按钮
         :return:
         """
-        self.add_theme_btn.setGeometry(QRect(THEME_BASE_X, THEME_BASE_Y,
+
+        with ThemeNote() as tn:
+            theme_names = tn.select_all_theme()
+        for theme_name_row in theme_names:
+            theme_name = theme_name_row[0]
+            theme_btn = self._create_theme_btn(theme_name)
+            self.theme_arr.append(theme_btn)
+            self.theme_set.add(theme_btn)
+        btn_pos_x = THEME_BTN_BASE_X
+        if self.theme_arr:
+            btn_pos_x = self.theme_arr[-1].x() + THEME_BTN_WIDTH_SPACE
+        self.add_theme_btn.setGeometry(QRect(btn_pos_x, THEME_BASE_Y,
                                              THEME_BASE_X + THEME_WIDTH,
                                              THEME_BASE_Y + THEME_HEIGHT))
         self.theme_font.setFamily("楷体")

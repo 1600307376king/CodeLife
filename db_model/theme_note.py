@@ -4,7 +4,7 @@
 # @Author  : jjc
 # @File    : theme_note.py
 # @Software: PyCharm
-from base_db import BaseDbManager
+from db_model.base_db import BaseDbManager
 
 
 class ThemeNote(BaseDbManager):
@@ -24,10 +24,18 @@ class ThemeNote(BaseDbManager):
 
     def insert_theme(self, name):
         cur = self.conn.cursor()
-        cur.execute("INSERT INFO THEME (ID, THEME_NAME) VALUES (NULL, '%s')" % name)
+        cur.execute("INSERT INTO THEME (ID, THEME_NAME) VALUES (NULL, '%s')" % name)
         self.conn.commit()
+
+    def select_all_theme(self):
+        sql = "select THEME_NAME FROM THEME"
+        cur = self.conn.cursor()
+        query_result = cur.execute(sql)
+        return query_result.fetchall()
 
 
 if __name__ == '__main__':
-    tn = ThemeNote()
-    tn.create_theme_table()
+    # tn = ThemeNote()
+    # tn.create_theme_table()
+    with ThemeNote() as tn:
+        tn.select_all_theme()
