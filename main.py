@@ -31,7 +31,7 @@ class MyWindow(MainWin, QMainWindow):
 
         self.setup_ui()
         self.set_dialog_bind()
-        self.add_sub_chapter_btn.clicked.connect(self.add_dialog.show)
+        self.add_sub_chapter_btn.clicked.connect(lambda: self.add_dialog.show_dialog(self.theme_arr))
         self.add_theme_btn.clicked.connect(self.add_theme_dialog.show)
         self.set_add_dialog_signal_bind()
 

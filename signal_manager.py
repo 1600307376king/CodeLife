@@ -14,5 +14,8 @@ class SignalManager(QObject):
     def send_signal(self, str_arr):
         self.signal.emit(str_arr)
 
+    def send_del_theme_btn(self, btn_name):
+        self.signal.emit(btn_name)
+
     def send_theme_name(self, theme_name):
         self.signal_str.emit(theme_name)

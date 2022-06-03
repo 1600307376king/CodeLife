@@ -33,9 +33,15 @@ class ThemeNote(BaseDbManager):
         query_result = cur.execute(sql)
         return query_result.fetchall()
 
+    def del_theme(self, theme_name):
+        sql = "delete FROM THEME where THEME_NAME='%s'" % theme_name
+        cur = self.conn.cursor()
+        cur.execute(sql)
+        self.conn.commit()
+
 
 if __name__ == '__main__':
-    # tn = ThemeNote()
-    # tn.create_theme_table()
-    with ThemeNote() as tn:
-        tn.select_all_theme()
+    tn = ThemeNote()
+    tn.create_theme_table()
+    # with ThemeNote() as tn:
+    #     tn.select_all_theme()

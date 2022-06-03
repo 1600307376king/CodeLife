@@ -25,6 +25,13 @@ class AddNoteDialog(QMainWindow):
         self.send = SignalManager()
         self.title_set = set()
 
+    def show_dialog(self, theme_name):
+        if theme_name:
+            self.show()
+        else:
+            msg_box = QMessageBox(QMessageBox.Warning, "警告", "主题不存在，请先创建")
+            msg_box.exec_()
+
     def _init_title_name_label(self):
         self.title_name_label = QtWidgets.QLabel(self)
         self.title_name_label.setGeometry(QtCore.QRect(13, 31, 81, 31))

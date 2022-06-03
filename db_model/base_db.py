@@ -21,4 +21,8 @@ class BaseDbManager:
         return self
 
     def __exit__(self, exc_type, exc_val, exc_tb):
+        if exc_type:
+            print(exc_type, exc_val, exc_tb)
+            self.conn.rollback()
         self.close_conn()
+
