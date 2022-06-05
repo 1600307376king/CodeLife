@@ -20,7 +20,7 @@ from signal_manager import SignalManager
 
 
 class AddThemeDialog(QMainWindow):
-    def __init__(self):
+    def __init__(self, theme_set):
         super().__init__()
         self.setObjectName("add_theme_dialog")
         self.resize(400, 180)
@@ -41,7 +41,7 @@ class AddThemeDialog(QMainWindow):
         self.cancel_btn = QtWidgets.QPushButton(self.btn_frame)
 
         self.send = SignalManager()
-        self.theme_set = set()
+        self.theme_set = theme_set
 
     def setup_ui(self):
         self._init_widget()

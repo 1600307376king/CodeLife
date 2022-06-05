@@ -10,7 +10,7 @@
 主窗口，多种类别资料展示
 """
 from PyQt5.QtGui import QFont
-from PyQt5.QtGui import QIcon, QCursor
+from PyQt5.QtGui import QIcon
 from PyQt5.QtGui import QCursor
 from PyQt5.QtWidgets import QFrame
 from PyQt5.QtWidgets import QMainWindow
@@ -26,13 +26,11 @@ from PyQt5.QtWidgets import QAction
 from PyQt5.QtWidgets import QTextBrowser
 from PyQt5.QtWidgets import QSizePolicy
 from PyQt5.QtWidgets import QDialog
-from PyQt5.QtWidgets import QMessageBox
 from PyQt5.QtCore import QCoreApplication
 from PyQt5.QtCore import QMetaObject
 from PyQt5.QtCore import Qt
 from PyQt5.QtCore import QRect
 from PyQt5.QtCore import QSize
-
 from chapter import OneChapter
 from config import SUB_CHAPTER_BTN_WIDTH
 from config import SUB_CHAPTER_BTN_HEIGHT
@@ -44,10 +42,9 @@ from config import WINDOW_SIZE
 from config import THEME_FRAME_SIZE
 from config import THEME_FRAME_MAX_HEIGHT
 from config import MAX_SIZE_NUM
-from config import THEME_BASE_X
-from config import THEME_BASE_Y
-from config import THEME_WIDTH
-from config import THEME_HEIGHT
+from config import THEME_BTN_BASE_Y
+from config import THEME_BTN_WIDTH
+from config import THEME_BTN_HEIGHT
 from config import THEME_FONT_SIZE
 from config import SUB_CHAPTER_LIST_BASE_X
 from config import SUB_CHAPTER_LIST_BASE_Y
@@ -66,12 +63,13 @@ from config import SUB_CHAPTER_NORMAL_STYLE
 from config import THEME_NORMAL_STYLE
 from config import THEME_HIGHLIGHT_STYLE
 from config import THEME_FRAME_STYLE
-from config import THEME_CONTAINER_STYLE
+from config import SUB_CHAPTER_AREA_STYLE
 from config import TOOLS_BAR_STYLE
+from config import THEME_BROWSER_STYLE
+from config import THEME_CONTAINER_STYLE
 from db_model.theme_note import ThemeNote
 from db_model.chapter_note import ChapterNote
 from tools_bar_group.switch_button import SwitchButton
-from signal_manager import SignalManager
 
 
 class MainWin(QMainWindow, QDialog):
@@ -92,8 +90,6 @@ class MainWin(QMainWindow, QDialog):
         self.grid_layout.setObjectName("grid_layout")
 
         self.tools_bar = QFrame(self.central_widget)
-        # self.tools_bar_layout = QGridLayout(self.central_widget)
-        # self.tools_bar_layout.setObjectName(u"tools_bar_layout")
 
         self.grid_layout.addWidget(self.tools_bar, 0, 0, 1, 1)
 
@@ -104,17 +100,16 @@ class MainWin(QMainWindow, QDialog):
         self.grid_layout.addWidget(self.theme_container, 2, 0, 1, 1)
 
         self.switch_btn = SwitchButton(self.tools_bar)
-        # self.tools_bar_layout.setAlignment(Qt.AlignCenter)
-        # self.tools_bar_layout.addWidget(self.switch_btn, 1, Qt.AlignRight | Qt.AlignBottom)
 
         self.add_theme_btn = QPushButton(self.theme_frame)
         self.theme_font = QFont()
         self.grid_layout_chapter = QGridLayout(self.theme_container)
         self.grid_layout_chapter.setObjectName("grid_layout_chapter")
+        self.grid_layout_chapter.setContentsMargins(0, 0, 0, 0)
 
         self.sub_chapters = QScrollArea(self.theme_container)
         self.grid_layout_chapter.addWidget(self.sub_chapters, 0, 0, 1, 1)
-
+        # 章节滚动条
         self.scroll_area_widget_contents = QWidget()
 
         self.add_sub_chapter_btn = QPushButton(
@@ -134,14 +129,14 @@ class MainWin(QMainWindow, QDialog):
         self.action_new_theme = QAction(self)
 
         self.chapter_arr = []
+        self.chapter_set = set()
         self.theme_arr = []
+        self.theme_set = set()
 
         self.be_select_theme = None
 
     def _init_switch_btn(self):
-        # self.switch_btn.setGeometry(QRect())
-
-        self.add_theme_btn.setObjectName("switch_btn")
+        self.switch_btn.setObjectName("switch_btn")
 
     def add_chapter_data(self, chapter_info):
         """
@@ -165,7 +160,6 @@ class MainWin(QMainWindow, QDialog):
 
         if btn_text_name:
             push_button = self._set_chapter_btn(btn_text_name)
-
             browser = QTextBrowser(self.theme_container)
             size_policy = QSizePolicy(
                 QSizePolicy.Preferred, QSizePolicy.Preferred)
@@ -175,6 +169,7 @@ class MainWin(QMainWindow, QDialog):
                 browser.sizePolicy().hasHeightForWidth())
             browser.setSizePolicy(size_policy)
             browser.setMinimumSize(QSize(*BROWSER_MINIMUM_SIZE))
+            browser.setStyleSheet(THEME_BROWSER_STYLE)
             browser.setReadOnly(True)
             self.grid_layout_chapter.addWidget(browser, 0, 1, 1, 1)
 
@@ -182,13 +177,9 @@ class MainWin(QMainWindow, QDialog):
             browser.setMarkdown(content)
             browser.show()
 
-            push_button.clicked.connect(lambda: self._switch_chapter_content(push_button.text()))
-            # chapter 右键显示子菜单初始化
-            push_button.setContextMenuPolicy(Qt.CustomContextMenu)
-            push_button.customContextMenuRequested.connect(lambda: self._show_chapter_btn_menu(push_button.text()))
-
             one_chapter = OneChapter(push_button, browser)
             self.chapter_arr.append(one_chapter)
+            self.chapter_set.add(one_chapter.chapter_btn.text())
             self._set_sub_chapter_scroll()
             # 将之前的textBrowser隐藏，只显示新增的
             self._switch_chapter_content(btn_text_name)
@@ -202,9 +193,11 @@ class MainWin(QMainWindow, QDialog):
         if theme_name:
             new_theme_btn = self._create_theme_btn(theme_name)
             self.theme_arr.append(new_theme_btn)
+            self.theme_set.add(theme_name)
             with ThemeNote() as tn:
                 tn.insert_theme(theme_name)
             self.be_select_theme = theme_name
+            self._switch_theme_content(theme_name)
 
     def _switch_theme_content(self, theme_name):
         """
@@ -256,9 +249,9 @@ class MainWin(QMainWindow, QDialog):
         if self.theme_arr:
             btn_pos_x = self.theme_arr[-1].x() + THEME_BTN_WIDTH_SPACE
         new_theme_btn = QPushButton(self.theme_frame)
-        new_theme_btn.setGeometry(QRect(btn_pos_x, THEME_BASE_Y,
-                                        THEME_BASE_X + THEME_WIDTH,
-                                        THEME_BASE_Y + THEME_HEIGHT))
+        new_theme_btn.setGeometry(QRect(btn_pos_x, THEME_BTN_BASE_Y,
+                                        THEME_BTN_BASE_X + THEME_BTN_WIDTH,
+                                        THEME_BTN_BASE_Y + THEME_BTN_HEIGHT))
         self.theme_font.setFamily("楷体")
         self.theme_font.setPointSize(THEME_FONT_SIZE)
         new_theme_btn.setText(theme_name)
@@ -272,7 +265,7 @@ class MainWin(QMainWindow, QDialog):
         new_theme_btn.customContextMenuRequested.connect(lambda: self._show_btn_menu(new_theme_btn.text()))
 
         new_theme_btn.show()
-        self.add_theme_btn.move(btn_pos_x + THEME_BTN_WIDTH_SPACE, THEME_BASE_Y)
+        self.add_theme_btn.move(btn_pos_x + THEME_BTN_WIDTH_SPACE, THEME_BTN_BASE_Y)
         return new_theme_btn
 
     def _show_btn_menu(self, btn_name):
@@ -309,6 +302,7 @@ class MainWin(QMainWindow, QDialog):
             if theme.text() == btn_name:
                 theme.hide()
                 self.theme_arr.remove(theme)
+                self.theme_set.remove(theme.text())
                 next_theme_index = index
                 break
 
@@ -346,6 +340,7 @@ class MainWin(QMainWindow, QDialog):
                 chapter.chapter_btn.hide()
                 chapter.browser_content.hide()
                 self.chapter_arr.remove(chapter)
+                self.chapter_set.remove(chapter.chapter_btn.text())
                 next_chapter_index = index
                 break
 
@@ -383,7 +378,7 @@ class MainWin(QMainWindow, QDialog):
                 self.chapter_arr[-1].chapter_btn.y() + \
                 SUB_CHAPTER_BTN_HEIGHT_SPACE
         push_button = QPushButton(self.scroll_area_widget_contents)
-        push_button.setObjectName(btn_text_name)
+        push_button.setObjectName("push_button")
         push_button.setGeometry(
             QRect(
                 SUB_CHAPTER_BTN_BASE_X,
@@ -393,6 +388,10 @@ class MainWin(QMainWindow, QDialog):
         push_button.setText(btn_text_name)
         push_button.setStyleSheet(
             SUB_CHAPTER_NORMAL_STYLE)
+        push_button.clicked.connect(lambda: self._switch_chapter_content(push_button.text()))
+        # chapter 右键显示子菜单初始化
+        push_button.setContextMenuPolicy(Qt.CustomContextMenu)
+        push_button.customContextMenuRequested.connect(lambda: self._show_chapter_btn_menu(push_button.text()))
         push_button.show()
         return push_button
 
@@ -404,7 +403,7 @@ class MainWin(QMainWindow, QDialog):
         self.tools_bar.setStyleSheet(TOOLS_BAR_STYLE)
         self.tools_bar.setFrameShadow(QFrame.Raised)
 
-    def _init_add_note_btn(self):
+    def _init_add_chapter_btn(self):
         """
         初始化添加按钮
         :return:
@@ -450,17 +449,18 @@ class MainWin(QMainWindow, QDialog):
                 self._switch_theme_content(theme_name)
                 theme_btn.setStyleSheet(THEME_HIGHLIGHT_STYLE)
             self.theme_arr.append(theme_btn)
+            self.theme_set.add(theme_name)
 
         btn_pos_x = THEME_BTN_BASE_X
         if self.theme_arr:
             btn_pos_x = self.theme_arr[-1].x() + THEME_BTN_WIDTH_SPACE
-        self.add_theme_btn.setGeometry(QRect(btn_pos_x, THEME_BASE_Y,
-                                             THEME_BASE_X + THEME_WIDTH,
-                                             THEME_BASE_Y + THEME_HEIGHT))
+        self.add_theme_btn.setGeometry(QRect(btn_pos_x, THEME_BTN_BASE_Y,
+                                             THEME_BTN_BASE_X + THEME_BTN_WIDTH,
+                                             THEME_BTN_BASE_Y + THEME_BTN_HEIGHT))
         self.theme_font.setFamily("楷体")
         self.theme_font.setPointSize(THEME_FONT_SIZE)
         self.add_theme_btn.setFont(self.theme_font)
-        self.add_theme_btn.setStyleSheet(SUB_CHAPTER_NORMAL_STYLE)
+        self.add_theme_btn.setStyleSheet(THEME_NORMAL_STYLE)
         self.add_theme_btn.setObjectName("theme")
 
     def _init_theme_container(self):
@@ -494,7 +494,8 @@ class MainWin(QMainWindow, QDialog):
         self.sub_chapters.setMinimumSize(QSize(*SUB_CHAPTER_LIST_MINIMUM_SIZE))
         self.sub_chapters.setMaximumSize(
             QSize(SUB_CHAPTER_LIST_MAX_WIDTH, MAX_SIZE_NUM))
-        self.sub_chapters.setBaseSize(QSize(*SUB_CHAPTER_LIST_MINIMUM_SIZE))
+        # self.sub_chapters.setBaseSize(QSize(*SUB_CHAPTER_LIST_MINIMUM_SIZE))
+        self.sub_chapters.setStyleSheet(SUB_CHAPTER_AREA_STYLE)
         self.scroll_area_widget_contents.setGeometry(
             QRect(*SUB_CHAPTER_SCROLL_SHAPE))
         self.scroll_area_widget_contents.setObjectName(
@@ -564,7 +565,7 @@ class MainWin(QMainWindow, QDialog):
         self._init_theme()
         self._init_theme_container()
         self._init_sub_chapters()
-        self._init_add_note_btn()
+        self._init_add_chapter_btn()
         self._init_theme_container_label()
         self.setCentralWidget(self.central_widget)
         self._init_menubar()

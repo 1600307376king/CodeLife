@@ -26,8 +26,8 @@ from main_win import MainWin
 class MyWindow(MainWin, QMainWindow):
     def __init__(self):
         super(MyWindow, self).__init__()
-        self.add_dialog = AddNoteDialog()
-        self.add_theme_dialog = AddThemeDialog()
+        self.add_dialog = AddNoteDialog(self.chapter_set)
+        self.add_theme_dialog = AddThemeDialog(self.theme_set)
 
         self.setup_ui()
         self.set_dialog_bind()

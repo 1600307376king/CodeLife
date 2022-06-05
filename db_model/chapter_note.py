@@ -23,7 +23,7 @@ class ChapterNote(BaseDbManager):
         self.conn.commit()
 
     def select_note(self, theme_name):
-        sql = "select CHAPTER_NAME, CONTENT from CHAPTER where THEME_NAME = %s" % theme_name
+        sql = "select CHAPTER_NAME, CONTENT from CHAPTER where THEME_NAME='%s'" % theme_name
         cur = self.conn.cursor()
         return cur.execute(sql).fetchall()
 

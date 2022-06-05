@@ -41,7 +41,7 @@ class ThemeNote(BaseDbManager):
 
 
 if __name__ == '__main__':
-    tn = ThemeNote()
-    tn.create_theme_table()
-    # with ThemeNote() as tn:
-    #     tn.select_all_theme()
+    # tn = ThemeNote()
+    # tn.create_theme_table()
+    with ThemeNote() as tn:
+        print(tn.select_all_theme())
