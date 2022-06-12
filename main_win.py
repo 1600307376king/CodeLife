@@ -9,11 +9,12 @@
 """
 主窗口，多种类别资料展示
 """
-from PyQt5.QtGui import QFont
+import shutil
+import os
+import subprocess
 from PyQt5.QtGui import QIcon
 from PyQt5.QtGui import QCursor
 from PyQt5.QtWidgets import QFrame
-from PyQt5.QtWidgets import QMainWindow
 from PyQt5.QtWidgets import QGridLayout
 from PyQt5.QtWidgets import QScrollArea
 from PyQt5.QtWidgets import QWidget
@@ -23,9 +24,8 @@ from PyQt5.QtWidgets import QMenuBar
 from PyQt5.QtWidgets import QMenu
 from PyQt5.QtWidgets import QStatusBar
 from PyQt5.QtWidgets import QAction
-from PyQt5.QtWidgets import QTextBrowser
 from PyQt5.QtWidgets import QSizePolicy
-from PyQt5.QtWidgets import QDialog
+from PyQt5.QtWebEngineWidgets import QWebEngineView
 from PyQt5.QtCore import QCoreApplication
 from PyQt5.QtCore import QMetaObject
 from PyQt5.QtCore import Qt
@@ -37,7 +37,6 @@ from config import SUB_CHAPTER_BTN_HEIGHT
 from config import SUB_CHAPTER_BTN_BASE_X
 from config import SUB_CHAPTER_BTN_BASE_Y
 from config import SUB_CHAPTER_BTN_HEIGHT_SPACE
-from config import BROWSER_MINIMUM_SIZE
 from config import WINDOW_SIZE
 from config import THEME_FRAME_SIZE
 from config import THEME_FRAME_MAX_HEIGHT
@@ -45,7 +44,6 @@ from config import MAX_SIZE_NUM
 from config import THEME_BTN_BASE_Y
 from config import THEME_BTN_WIDTH
 from config import THEME_BTN_HEIGHT
-from config import THEME_FONT_SIZE
 from config import SUB_CHAPTER_LIST_BASE_X
 from config import SUB_CHAPTER_LIST_BASE_Y
 from config import SUB_CHAPTER_LIST_WIDTH
@@ -69,10 +67,11 @@ from config import THEME_BROWSER_STYLE
 from config import THEME_CONTAINER_STYLE
 from db_model.theme_note import ThemeNote
 from db_model.chapter_note import ChapterNote
-from tools_bar_group.switch_button import SwitchButton
+from base_window import BaseWindow
+import win32api
 
 
-class MainWin(QMainWindow, QDialog):
+class MainWin(BaseWindow):
     """
     主窗体
     """
@@ -99,10 +98,11 @@ class MainWin(QMainWindow, QDialog):
         self.theme_container = QFrame(self.central_widget)
         self.grid_layout.addWidget(self.theme_container, 2, 0, 1, 1)
 
-        self.switch_btn = SwitchButton(self.tools_bar)
+        # self.switch_btn = SwitchButton(self.tools_bar)
+        self.typora_exec_btn = QPushButton(self.tools_bar)
 
         self.add_theme_btn = QPushButton(self.theme_frame)
-        self.theme_font = QFont()
+
         self.grid_layout_chapter = QGridLayout(self.theme_container)
         self.grid_layout_chapter.setObjectName("grid_layout_chapter")
         self.grid_layout_chapter.setContentsMargins(0, 0, 0, 0)
@@ -135,8 +135,16 @@ class MainWin(QMainWindow, QDialog):
 
         self.be_select_theme = None
 
-    def _init_switch_btn(self):
-        self.switch_btn.setObjectName("switch_btn")
+    def _init_typora_btn(self):
+        self.typora_exec_btn.setObjectName("switch_btn")
+        self.typora_exec_btn.setFont(self.tools_bar_font)
+        self.typora_exec_btn.setText("打开Typora")
+        self.typora_exec_btn.clicked.connect(self._exec_typora)
+
+    @staticmethod
+    def _exec_typora():
+        if os.path.exists(os.path.join(os.getcwd(), "Typora\\Typora.exe")):
+            subprocess.getstatusoutput(os.path.join(os.getcwd(), "Typora\\Typora.exe"))
 
     def add_chapter_data(self, chapter_info):
         """
@@ -147,8 +155,15 @@ class MainWin(QMainWindow, QDialog):
         if self.be_select_theme is None:
             self.be_select_theme = self.theme_arr[0].text()
         with ChapterNote() as cn:
-            cn.insert_note(self.be_select_theme, *chapter_info)
-        self._add_chapter_btn(chapter_info)
+            btn_text_name, file_path = chapter_info
+            relative_path = "src/typora_src/src_html/%s" % self.be_select_theme
+            file_name = "%s.html" % btn_text_name
+            dst_path = os.path.join(os.getcwd(), relative_path)
+            os.makedirs(dst_path, exist_ok=True)
+            shutil.copy(file_path, os.path.join(dst_path, file_name))
+            relative_fail_path = os.path.join(relative_path, file_name)
+            cn.insert_note(self.be_select_theme, btn_text_name, relative_fail_path)
+            self._add_chapter_btn((btn_text_name, relative_fail_path))
 
     def _add_chapter_btn(self, chapter_info):
         """
@@ -156,11 +171,11 @@ class MainWin(QMainWindow, QDialog):
         :param chapter_info:
         :return:
         """
-        btn_text_name, content = chapter_info
+        btn_text_name, relative_path = chapter_info
 
         if btn_text_name:
             push_button = self._set_chapter_btn(btn_text_name)
-            browser = QTextBrowser(self.theme_container)
+            browser = QWebEngineView(self.theme_container)
             size_policy = QSizePolicy(
                 QSizePolicy.Preferred, QSizePolicy.Preferred)
             size_policy.setHorizontalStretch(0)
@@ -168,13 +183,17 @@ class MainWin(QMainWindow, QDialog):
             size_policy.setHeightForWidth(
                 browser.sizePolicy().hasHeightForWidth())
             browser.setSizePolicy(size_policy)
-            browser.setMinimumSize(QSize(*BROWSER_MINIMUM_SIZE))
             browser.setStyleSheet(THEME_BROWSER_STYLE)
-            browser.setReadOnly(True)
             self.grid_layout_chapter.addWidget(browser, 0, 1, 1, 1)
 
             browser.setObjectName("context")
-            browser.setMarkdown(content)
+            dst_file_path = os.path.join(os.getcwd(), relative_path)
+
+            if relative_path.endswith(".html") and os.path.exists(dst_file_path):
+                with open(dst_file_path, "r", encoding="utf-8") as f:
+                    browser.setHtml(f.read())
+            else:
+                browser.setHtml("<p>加载html失败，请检查文件格式</p>")
             browser.show()
 
             one_chapter = OneChapter(push_button, browser)
@@ -252,8 +271,6 @@ class MainWin(QMainWindow, QDialog):
         new_theme_btn.setGeometry(QRect(btn_pos_x, THEME_BTN_BASE_Y,
                                         THEME_BTN_BASE_X + THEME_BTN_WIDTH,
                                         THEME_BTN_BASE_Y + THEME_BTN_HEIGHT))
-        self.theme_font.setFamily("楷体")
-        self.theme_font.setPointSize(THEME_FONT_SIZE)
         new_theme_btn.setText(theme_name)
         new_theme_btn.setFont(self.theme_font)
         new_theme_btn.setStyleSheet(THEME_NORMAL_STYLE)
@@ -287,9 +304,23 @@ class MainWin(QMainWindow, QDialog):
         self.group_menu = QMenu(self)
         # 创建菜单元素， 删除选项
         self.action_del = QAction(QIcon("./src/icon/trash.png"), "删除", self)
+        self.action_edit = QAction(QIcon("./src/icon/edit.png"), "编辑", self)
         self.group_menu.addAction(self.action_del)
+        self.group_menu.addAction(self.action_edit)
         self.action_del.triggered.connect(lambda: self._del_cur_chapter_btn(btn_name))
+        self.action_edit.triggered.connect(lambda: self._edit_chapter(btn_name))
         self.group_menu.popup(QCursor.pos())
+
+    @staticmethod
+    def _edit_chapter(chapter_name):
+        """
+        edit chapter with typora
+        :param chapter_name:
+        :return:
+        """
+        md_file_path = os.path.join(os.getcwd(), chapter_name, ".md")
+        if os.path.exists(md_file_path):
+            win32api.ShellExecute(0, 'open', 'Typora.exe', md_file_path, "", 1)
 
     def _del_cur_theme_btn(self, btn_name):
         """
@@ -457,8 +488,7 @@ class MainWin(QMainWindow, QDialog):
         self.add_theme_btn.setGeometry(QRect(btn_pos_x, THEME_BTN_BASE_Y,
                                              THEME_BTN_BASE_X + THEME_BTN_WIDTH,
                                              THEME_BTN_BASE_Y + THEME_BTN_HEIGHT))
-        self.theme_font.setFamily("楷体")
-        self.theme_font.setPointSize(THEME_FONT_SIZE)
+
         self.add_theme_btn.setFont(self.theme_font)
         self.add_theme_btn.setStyleSheet(THEME_NORMAL_STYLE)
         self.add_theme_btn.setObjectName("theme")
@@ -560,7 +590,7 @@ class MainWin(QMainWindow, QDialog):
         :return:
         """
         self._init_tools_bar()
-        self._init_switch_btn()
+        self._init_typora_btn()
         self._init_theme_frame()
         self._init_theme()
         self._init_theme_container()

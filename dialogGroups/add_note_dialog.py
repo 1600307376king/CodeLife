@@ -9,8 +9,8 @@
 """
 add note dialog class
 """
-
-
+import sys
+from PyQt5.QtWidgets import QApplication
 from PyQt5.QtWidgets import QMainWindow
 from PyQt5.QtWidgets import QMessageBox
 from PyQt5.QtWidgets import QWidget
@@ -44,9 +44,10 @@ from com_manager.note_dialog_common import ADD_NOTE_DIALOG_WEIGHT
 from com_manager.note_dialog_common import ADD_NOTE_DIALOG_FAMILY
 from com_manager.note_dialog_common import MAX_TITLE_INPUT_LEN
 from com_manager.note_dialog_common import TITLE_EDIT_MAX_SIZE
+from dialogGroups.base_dialog import BaseDialog
 
 
-class AddNoteDialog(QMainWindow):
+class AddNoteDialog(BaseDialog):
     """
     add note dialog setting
     """
@@ -109,7 +110,6 @@ class AddNoteDialog(QMainWindow):
         self.font.setPointSize(ADD_NOTE_DIALOG_FONT)
         self.font.setBold(True)
         self.font.setWeight(ADD_NOTE_DIALOG_WEIGHT)
-        self.setFont(self.font)
 
     def _init_title_frame(self):
         self.title_frame.setObjectName("title_frame")
@@ -177,7 +177,6 @@ class AddNoteDialog(QMainWindow):
 
     def _init_note_content_label(self):
         self.note_content_label.setObjectName("note_content_label")
-        # self.note_content_label.setMaximumSize(QSize(16777215, 50))
         self.note_content_label.setFont(self.font)
 
     def _init_note_content_edit(self):
@@ -193,7 +192,6 @@ class AddNoteDialog(QMainWindow):
         :return:
         """
         self.preview_label.setObjectName("preview_label")
-        # self.preview_label.setMaximumSize(QSize(16777215, 50))
         self.preview_label.setFont(self.font)
 
     def _init_preview_note(self):
@@ -218,6 +216,7 @@ class AddNoteDialog(QMainWindow):
         self.save_note_btn.setObjectName("save_note_btn")
         self.save_note_btn.setMaximumSize(QSize(BTN_MAX_WIDTH, MAX_SIZE_NUM))
         self.save_note_btn.clicked.connect(self.save_title_content)
+        self.save_note_btn.setFont(self.font)
 
     def _cancel_btn(self):
         """
@@ -227,6 +226,7 @@ class AddNoteDialog(QMainWindow):
         self.cancel_note_btn.setObjectName("cancel_note_btn")
         self.cancel_note_btn.setMaximumSize(QSize(BTN_MAX_WIDTH, MAX_SIZE_NUM))
         self.cancel_note_btn.clicked.connect(self.close_dialog)
+        self.cancel_note_btn.setFont(self.font)
 
     def setup_ui(self):
         """
@@ -288,13 +288,6 @@ class AddNoteDialog(QMainWindow):
             msg_box = QMessageBox(QMessageBox.Warning, "警告", "文章标题和内容不能为空")
             msg_box.exec_()
 
-    def close_dialog(self):
-        """
-        close dialog
-        :return:
-        """
-        self.close()
-
     def fresh_text_edit(self):
         """
         input and fresh preview text
@@ -306,3 +299,12 @@ class AddNoteDialog(QMainWindow):
         self.preview_note.verticalScrollBar().setValue(
             self.preview_note.verticalScrollBar().maximum())
         self.preview_note.moveCursor(QTextCursor.End)
+
+
+if __name__ == '__main__':
+
+    app = QApplication(sys.argv)
+    add_dialog = AddNoteDialog(set())
+    add_dialog.setup_ui()
+    add_dialog.show()
+    sys.exit(app.exec())
