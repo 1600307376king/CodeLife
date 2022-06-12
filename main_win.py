@@ -318,6 +318,7 @@ class MainWin(BaseWindow):
         :param chapter_name:
         :return:
         """
+        # 暂时失效，由于markdown文件无法完整转化html
         md_file_path = os.path.join(os.getcwd(), chapter_name, ".md")
         if os.path.exists(md_file_path):
             win32api.ShellExecute(0, 'open', 'Typora.exe', md_file_path, "", 1)
@@ -447,6 +448,25 @@ class MainWin(BaseWindow):
             ))
         self.add_sub_chapter_btn.setStyleSheet(SUB_CHAPTER_NORMAL_STYLE)
         self.add_sub_chapter_btn.setObjectName("add_sub_chapter")
+
+    def _find_typora_files(self):
+        """
+        查找tpora文件并添加到章节列表显示
+        :return:
+        """
+        # add_chapter_name_dialog = AddChapterName()
+        # add_chapter_name_dialog.setup_ui()
+        # add_chapter_name_dialog.show()
+        # opened_file = QFileDialog.getOpenFileName(self, "open file", "/")
+        #
+        # if opened_file:
+        #     if os.path.exists(opened_file[0]):
+        #         add_chapter_name_dialog = AddChapterName()
+        #         add_chapter_name_dialog.setup_ui()
+        #         add_chapter_name_dialog.show()
+        # with open(opened_file[0], "r") as f:
+        #     content = f.read()
+        #     self.add_chapter_data(("1111", content))
 
     def _init_theme_frame(self):
         """
