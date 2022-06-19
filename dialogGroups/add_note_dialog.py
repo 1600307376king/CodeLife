@@ -9,9 +9,10 @@
 """
 add note dialog class
 """
+import os
 import sys
 from PyQt5.QtWidgets import QApplication
-from PyQt5.QtWidgets import QMainWindow
+from PyQt5.QtWidgets import QSizePolicy
 from PyQt5.QtWidgets import QMessageBox
 from PyQt5.QtWidgets import QWidget
 from PyQt5.QtWidgets import QFrame
@@ -23,10 +24,12 @@ from PyQt5.QtWidgets import QLineEdit
 from PyQt5.QtWidgets import QTextEdit
 from PyQt5.QtWidgets import QPushButton
 from PyQt5.QtWidgets import QTextBrowser
+from PyQt5.QtWebEngineWidgets import QWebEngineView
 from PyQt5.QtGui import QTextCursor
 from PyQt5.QtGui import QFont
 from PyQt5.QtCore import QSize
 from PyQt5.QtCore import Qt
+from PyQt5.QtCore import QUrl
 from PyQt5.QtCore import QMetaObject
 from PyQt5.QtCore import QCoreApplication
 from signal_manager import SignalManager
@@ -45,6 +48,7 @@ from com_manager.note_dialog_common import ADD_NOTE_DIALOG_FAMILY
 from com_manager.note_dialog_common import MAX_TITLE_INPUT_LEN
 from com_manager.note_dialog_common import TITLE_EDIT_MAX_SIZE
 from dialogGroups.base_dialog import BaseDialog
+from com_manager.md_to_html import MdToHtml
 
 
 class AddNoteDialog(BaseDialog):
@@ -56,6 +60,7 @@ class AddNoteDialog(BaseDialog):
         super().__init__()
         self.setObjectName("add_note_dialog")
         self.resize(*NOTE_DIALOG_SIZE)
+        self.setFixedSize(self.width(), self.height())
         self.central_widget = QWidget(self)
         self.central_widget.setObjectName("central_widget")
 
@@ -71,6 +76,7 @@ class AddNoteDialog(BaseDialog):
         self.from_layout = QFormLayout(self.title_frame)
 
         self.horizontal_layout = QHBoxLayout(self.content_frame)
+        self.horizontal_layout.setContentsMargins(0, 0, 0, 0)
 
         self.btn_layout = QHBoxLayout(self.btn_frame)
 
@@ -84,7 +90,7 @@ class AddNoteDialog(BaseDialog):
 
         self.preview_label = QLabel(self.content_frame)
 
-        self.preview_note = QTextBrowser(self.content_frame)
+        self.preview_note = QWebEngineView(self.content_frame)
 
         self.save_note_btn = QPushButton(self)
 
@@ -92,6 +98,8 @@ class AddNoteDialog(BaseDialog):
 
         self.send = SignalManager()
         self.chapter_set = chapter_set
+
+        self.md_to_html = MdToHtml()
 
     def show_dialog(self, theme_name):
         """
@@ -178,12 +186,14 @@ class AddNoteDialog(BaseDialog):
     def _init_note_content_label(self):
         self.note_content_label.setObjectName("note_content_label")
         self.note_content_label.setFont(self.font)
+        self.note_content_label.setMaximumSize(QSize(60, MAX_SIZE_NUM))
 
     def _init_note_content_edit(self):
         self.note_text_edit.setObjectName("note_text_edit")
         self.note_text_edit.setHorizontalScrollBarPolicy(
             Qt.ScrollBarAsNeeded)
         self.note_text_edit.setLineWrapMode(QTextEdit.NoWrap)
+        self.note_text_edit.setMaximumSize(500, MAX_SIZE_NUM)
         self.note_text_edit.textChanged.connect(self.fresh_text_edit)
 
     def _init_preview_note_label(self):
@@ -193,6 +203,7 @@ class AddNoteDialog(BaseDialog):
         """
         self.preview_label.setObjectName("preview_label")
         self.preview_label.setFont(self.font)
+        self.preview_label.setMaximumSize(QSize(60, MAX_SIZE_NUM))
 
     def _init_preview_note(self):
         """
@@ -200,13 +211,26 @@ class AddNoteDialog(BaseDialog):
         :return:
         """
         self.preview_note.setObjectName("preview_note")
+        size_policy = QSizePolicy(
+            QSizePolicy.Preferred, QSizePolicy.Preferred)
+        size_policy.setHorizontalStretch(0)
+        size_policy.setVerticalStretch(0)
+        size_policy.setHeightForWidth(
+            self.preview_note.sizePolicy().hasHeightForWidth())
+        self.preview_note.setSizePolicy(size_policy)
+        self.preview_note.setMinimumSize(QSize(500, MAX_SIZE_NUM))
+        # with open("../src/html_src/textMagicEdit.html", "r", encoding="utf-8") as f:
+        #     self.preview_note.setHtml(f.read())
+        #     # 加载本地html文件
+        #     url = os.getcwd() + os.path.sep + "../src/html_src/textMagicEdit.html"
+        #     self.preview_note.load(QUrl.fromLocalFile(url))
         # 设置水平滚动条
-        self.preview_note.setHorizontalScrollBarPolicy(
-            Qt.ScrollBarAsNeeded)
-        self.preview_note.setLineWrapMode(QTextEdit.NoWrap)
-        self.preview_note.verticalScrollBar().setValue(
-            self.preview_note.verticalScrollBar().maximum())
-        self.preview_note.moveCursor(QTextCursor.End)
+        # self.preview_note.setHorizontalScrollBarPolicy(
+        #     Qt.ScrollBarAsNeeded)
+        # self.preview_note.setLineWrapMode(QTextEdit.NoWrap)
+        # self.preview_note.verticalScrollBar().setValue(
+        #     self.preview_note.verticalScrollBar().maximum())
+        # self.preview_note.moveCursor(QTextCursor.End)
 
     def _save_btn(self):
         """
@@ -293,12 +317,21 @@ class AddNoteDialog(BaseDialog):
         input and fresh preview text
         :return:
         """
-        self.preview_note.setText(self.note_text_edit.toPlainText())
-        self.preview_note.setMarkdown(self.preview_note.toPlainText())
-        # 保证预览界面与输入界面同步
-        self.preview_note.verticalScrollBar().setValue(
-            self.preview_note.verticalScrollBar().maximum())
-        self.preview_note.moveCursor(QTextCursor.End)
+        # print(self.note_text_edit.toPlainText())
+        new_html = self.md_to_html.refresh_line(self.note_text_edit.toPlainText())
+        print(new_html)
+        url = os.getcwd() + os.path.sep + "../src/html_tmp_file/tmp_html.html"
+        self.preview_note.setHtml(new_html)
+        # with open(url, "w", encoding="utf-8") as f:
+        #     f.write(new_html)
+        #     self.preview_note.load(QUrl.)
+        # self.preview_note.setHtml(new_html)
+        # self.preview_note.setText(self.note_text_edit.toPlainText())
+        # self.preview_note.setMarkdown(self.preview_note.toPlainText())
+        # # 保证预览界面与输入界面同步
+        # self.preview_note.verticalScrollBar().setValue(
+        #     self.preview_note.verticalScrollBar().maximum())
+        # self.preview_note.moveCursor(QTextCursor.End)
 
 
 if __name__ == '__main__':

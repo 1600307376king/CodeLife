@@ -31,6 +31,7 @@ from PyQt5.QtCore import QMetaObject
 from PyQt5.QtCore import Qt
 from PyQt5.QtCore import QRect
 from PyQt5.QtCore import QSize
+from PyQt5.QtCore import QUrl
 from chapter import OneChapter
 from config import SUB_CHAPTER_BTN_WIDTH
 from config import SUB_CHAPTER_BTN_HEIGHT
@@ -185,15 +186,19 @@ class MainWin(BaseWindow):
             browser.setSizePolicy(size_policy)
             browser.setStyleSheet(THEME_BROWSER_STYLE)
             self.grid_layout_chapter.addWidget(browser, 0, 1, 1, 1)
-
             browser.setObjectName("context")
             dst_file_path = os.path.join(os.getcwd(), relative_path)
 
             if relative_path.endswith(".html") and os.path.exists(dst_file_path):
-                with open(dst_file_path, "r", encoding="utf-8") as f:
-                    browser.setHtml(f.read())
+                with open("src/html_src/textMagicEdit.html", "r", encoding="utf-8") as f:
+                    # browser.setHtml(f.read())
+                    # 加载本地html文件
+                    url = os.getcwd() + os.path.sep + "src/html_src/textMagicEdit.html"
+                    browser.load(QUrl.fromLocalFile(url))
+                # browser.setHtml(f.read())
             else:
                 browser.setHtml("<p>加载html失败，请检查文件格式</p>")
+
             browser.show()
 
             one_chapter = OneChapter(push_button, browser)
@@ -628,7 +633,7 @@ class MainWin(BaseWindow):
         :return:
         """
         _translate = QCoreApplication.translate
-        self.setWindowTitle(_translate("main_window", "MainWindow"))
+        # self.setWindowTitle(_translate("main_window", "MainWindow"))
         self.add_theme_btn.setText(_translate("main_window", "添加主题"))
         self.add_sub_chapter_btn.setText(_translate("main_window", "添加"))
         self.theme_container_label.setText(_translate("main_window", "请添加组件"))

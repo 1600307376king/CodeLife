@@ -6,6 +6,7 @@
 # @Software: PyCharm
 
 from PyQt5.QtGui import QFont
+from PyQt5.QtGui import QIcon
 from PyQt5.QtWidgets import QMainWindow
 from PyQt5.QtWidgets import QDialog
 from config import TOOLS_BAR_FAMILY
@@ -19,6 +20,8 @@ from config import SUB_CHAPTER_FONT_SIZE
 class BaseWindow(QMainWindow, QDialog):
     def __init__(self):
         super().__init__()
+        self.setWindowTitle("我的笔记")
+        self.setWindowIcon(QIcon("src/icon/mylogo.ico"))
         self.theme_font = QFont()
         self.tools_bar_font = QFont()
         self.sub_chapter_font = QFont()
